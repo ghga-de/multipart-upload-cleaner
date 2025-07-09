@@ -1,0 +1,14 @@
+[project]
+name = "multipart_upload_cleaner"
+version = "0.1.0"
+description = "Multipart Upload Cleaner - a short description"
+dependencies = [
+    "typer >= 0.15",
+    "hexkit[s3] >= 5.3",
+]
+
+[project.urls]
+Repository = "https://github.com/ghga-de/multipart-upload-cleaner"
+
+[project.scripts]
+multipart-upload-cleaner = "multipart_upload_cleaner.__main__:run"
