@@ -1,4 +1,4 @@
 #!/bin/bash
 
 # adapt to package name
-multipart-upload-cleaner
+muc

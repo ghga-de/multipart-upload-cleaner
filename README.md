@@ -1,36 +1,9 @@
-# Microservice Repository Template
+[![tests](https://github.com/ghga-de/multipart-upload-cleaner/actions/workflows/tests.yaml/badge.svg)](https://github.com/ghga-de/multipart-upload-cleaner/actions/workflows/tests.yaml)
+[![Coverage Status](https://coveralls.io/repos/github/ghga-de/multipart-upload-cleaner/badge.svg?branch=main)](https://coveralls.io/github/ghga-de/multipart-upload-cleaner?branch=main)
 
-This is a template for GitHub repositories containing one Python-based microservice (optimal for a multirepository setup).
+# Multipart Upload Cleaner
 
-It features:
-
-- *Continuous Templation* - A continuous update-delivery mechanism for templated repositories
-- A [devcontainer](https://containers.dev/)-based fully-configured development environment for vscode
-- Tight linting and formatting using [Ruff](https://docs.astral.sh/ruff/)
-- Static type checking using [mypy](https://www.mypy-lang.org/)
-- Security scanning using [bandit](https://bandit.readthedocs.io/en/latest/)
-- A structure for automated tests using [pytest](https://docs.pytest.org/en/7.4.x/)
-- Dependency locking using [pip-tools](https://github.com/jazzband/pip-tools)
-- Git hooks checking linting and formatting before committing using [pre-commit](https://pre-commit.com/)
-- Automatic container-building and publishing to [Docker Hub](https://hub.docker.com/)
-- GitHub Actions for automating or checking all of the above
-
-It is worth emphasizing the first point, this template is not just a one-time kickstart for your project
-but repositories created using this template will continue receiving updates as the template evolves.
-For further details, please look at the explanation in [.template/README.md](/.template/README.md).
-
-Please also refer to [.readme_generation/README.md](/.readme_generation/README.md) for details on how
-to adapt this readme.
-
-Here the intro to the template stops and the actual template for the readme of the microservice starts:
-
----
-[![tests](https://github.com/ghga-de/microservice-repository-template/actions/workflows/tests.yaml/badge.svg)](https://github.com/ghga-de/microservice-repository-template/actions/workflows/tests.yaml)
-[![Coverage Status](https://coveralls.io/repos/github/ghga-de/microservice-repository-template/badge.svg?branch=main)](https://coveralls.io/github/ghga-de/microservice-repository-template?branch=main)
-
-# My Microservice
-
-My-Microservice - a short description
+Multipart Upload Cleaner - a short description
 
 ## Description
 
@@ -43,15 +16,15 @@ Here you should provide a short summary of the purpose of this microservice.
 
 We recommend using the provided Docker container.
 
-A pre-built version is available at [docker hub](https://hub.docker.com/repository/docker/ghga/my-microservice):
+A pre-built version is available at [docker hub](https://hub.docker.com/repository/docker/ghga/multipart-upload-cleaner):
 ```bash
-docker pull ghga/my-microservice:0.1.0
+docker pull ghga/multipart-upload-cleaner:0.1.0
 ```
 
 Or you can build the container yourself from the [`./Dockerfile`](./Dockerfile):
 ```bash
 # Execute in the repo's root dir:
-docker build -t ghga/my-microservice:0.1.0 .
+docker build -t ghga/multipart-upload-cleaner:0.1.0 .
 ```
 
 For production-ready deployment, we recommend using Kubernetes, however,
@@ -59,7 +32,7 @@ for simple use cases, you could execute the service using docker
 on a single server:
 ```bash
 # The entrypoint is preconfigured:
-docker run -p 8080:8080 ghga/my-microservice:0.1.0 --help
+docker run -p 8080:8080 ghga/multipart-upload-cleaner:0.1.0 --help
 ```
 
 If you prefer not to use containers, you may install the service from source:
@@ -68,7 +41,7 @@ If you prefer not to use containers, you may install the service from source:
 pip install .
 
 # To run the service:
-my_microservice --help
+multipart_upload_cleaner --help
 ```
 
 ## Configuration
@@ -226,20 +199,20 @@ The service requires the following configuration parameters:
 ### Usage:
 
 A template YAML for configuring the service can be found at
-[`./example-config.yaml`](./example-config.yaml).
-Please adapt it, rename it to `.my_microservice.yaml`, and place it in one of the following locations:
-- in the current working directory where you execute the service (on Linux: `./.my_microservice.yaml`)
-- in your home directory (on Linux: `~/.my_microservice.yaml`)
+[`./example_config.yaml`](./example_config.yaml).
+Please adapt it, rename it to `.multipart_upload_cleaner.yaml`, and place it in one of the following locations:
+- in the current working directory where you execute the service (on Linux: `./.multipart_upload_cleaner.yaml`)
+- in your home directory (on Linux: `~/.multipart_upload_cleaner.yaml`)
 
 The config yaml will be automatically parsed by the service.
 
 **Important: If you are using containers, the locations refer to paths within the container.**
 
-All parameters mentioned in the [`./example-config.yaml`](./example-config.yaml)
+All parameters mentioned in the [`./example_config.yaml`](./example_config.yaml)
 could also be set using environment variables or file secrets.
 
-For naming the environment variables, just prefix the parameter name with `my_microservice_`,
-e.g. for the `host` set an environment variable named `my_microservice_host`
+For naming the environment variables, just prefix the parameter name with `multipart_upload_cleaner_`,
+e.g. for the `host` set an environment variable named `multipart_upload_cleaner_host`
 (you may use both upper or lower cases, however, it is standard to define all env
 variables in upper cases).
 
@@ -247,8 +220,7 @@ To use file secrets, please refer to the
 [corresponding section](https://pydantic-docs.helpmanual.io/usage/settings/#secret-support)
 of the pydantic documentation.
 
-## HTTP API
-An OpenAPI specification for this service can be found [here](./openapi.yaml).
+
 
 ## Architecture and Design:
 <!-- Please provide an overview of the architecture and design of the code base.
@@ -283,7 +255,7 @@ It installs the service with all development dependencies, and it installs pre-c
 
 The installation is performed automatically when you build the devcontainer. However,
 if you update dependencies in the [`./pyproject.toml`](./pyproject.toml) or the
-[`./requirements-dev.txt`](./requirements-dev.txt), please run it again.
+[`./lock/requirements-dev.txt`](./lock/requirements-dev.txt), please run it again.
 
 ## License
 
@@ -292,5 +264,5 @@ This repository is free to use and modify according to the
 
 ## README Generation
 
-This README file is auto-generated, please see [`readme_generation.md`](./readme_generation.md)
+This README file is auto-generated, please see [.readme_generation/README.md](.readme_generation/README.md)
 for details.
