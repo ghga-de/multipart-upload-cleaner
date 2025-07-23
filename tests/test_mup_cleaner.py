@@ -14,132 +14,96 @@
 # limitations under the License.
 """Test multipart upload cleaner logic."""
 
-from datetime import UTC, datetime, timedelta
-from unittest.mock import MagicMock
+from contextlib import contextmanager
+from datetime import UTC, datetime
 
-import pytest
+import boto3
+from testcontainers.localstack import LocalStackContainer
 
 from muc.mup_cleaner import CleanerConfig, MultipartUploadCleaner
 
+BUCKET_IDS = ["bucket1", "bucket2"]
+FILE_IDS = ["file1.txt", "file2.txt", "file3.txt"]
+CLEANUP_INTERVAL = 7  # days
+NOW = datetime(2025, 8, 12, 16, 4, tzinfo=UTC)
+TEST_CONFIG = CleanerConfig(
+    s3_access_key_id="test",
+    s3_secret_access_key="test",
+    s3_endpoint_url="http://localstack:4566",
+    bucket_ids=BUCKET_IDS,
+    cleanup_interval=7,
+    service_name="test-service",
+    service_instance_id="test001",
+)  # type: ignore
 
-@pytest.fixture
-def config():
-    """Simple test configuration for the cleaner."""
-    return CleanerConfig(
-        s3_access_key_id="testy",
-        s3_secret_access_key="test",
-        s3_endpoint_url="http://localstack:4566",
-        bucket_ids=["bucket1", "bucket2"],
-        cleanup_interval=7,
-        service_name="test-service",
-        service_instance_id="test001",
-    )
-
-
-@pytest.fixture
-def uploads(now):
-    """Provide a list of mock multipart upload metadata."""
-    return [
-        {
-            "UploadId": "old-upload",
-            "Key": "file1.txt",
-            "Initiated": (now - timedelta(days=10)).isoformat().replace("+00:00", "Z"),
-        },
-        {
-            "UploadId": "recent-upload",
-            "Key": "file2.txt",
-            "Initiated": (now - timedelta(days=2)).isoformat().replace("+00:00", "Z"),
-        },
-    ]
+# List of mock multipart upload metadata
+# Only the second upload is stale and should be aborted
+MOCK_METADATA_REPLACEMENTS = {
+    "file1.txt": {"Initiated": datetime(2025, 8, 12, tzinfo=UTC).isoformat()},
+    "file2.txt": {"Initiated": datetime(2025, 8, 5, tzinfo=UTC).isoformat()},
+    "file3.txt": {
+        "Initiated": datetime(2025, 8, 5, 23, 59, 59, tzinfo=UTC).isoformat()
+    },
+}
 
 
-@pytest.fixture
-def now():
-    """Fixed point in time for tests."""
-    return datetime(2025, 8, 12, 16, 4, 0, tzinfo=UTC)
+@contextmanager
+def patch_handle_upload():
+    """Patch the `_handle_upload` method to inject fake upload initiation dates."""
+    original = MultipartUploadCleaner._handle_upload
 
-
-def test_abort_stale_multipart_uploads_aborts_old_uploads(
-    mock_datetime, mock_boto_client, config, uploads, now
-):
-    """TODO"""
-    mock_datetime.now.return_value = now
-    mock_datetime.fromisoformat.side_effect = lambda s: datetime.fromisoformat(
-        s.replace("Z", "+00:00")
-    )
-    mock_datetime.UTC = UTC
-
-    mock_client = MagicMock()
-    mock_boto_client.return_value = mock_client
-
-    paginator = MagicMock()
-    paginator.paginate.side_effect = lambda Bucket: [{"Uploads": uploads}]
-    mock_client.get_paginator.return_value = paginator
-
-    # Run
-    summary = abort_stale_multipart_uploads(config)
-
-    # Only the old upload should be aborted for each bucket
-    for bucket in config.bucket_ids:
-        assert len(summary[bucket]) == 1
-        aborted = summary[bucket][0]
-        assert aborted["key"] == "file1.txt"
-        assert aborted["upload_id"] == "old-upload"
-        assert isinstance(aborted["initiated"], datetime)
-        # Check abort_multipart_upload called with correct args
-        mock_client.abort_multipart_upload.assert_any_call(
-            Bucket=bucket, Key="file1.txt", UploadId="old-upload"
+    def patch(self, *, bucket: str, upload_id: str, key: str, initiated: str):
+        """Patch to inject fake upload initiation date."""
+        original(
+            self,
+            bucket=bucket,
+            upload_id=upload_id,
+            key=key,
+            initiated=MOCK_METADATA_REPLACEMENTS[key]["Initiated"],
         )
-    # Should not abort recent upload
-    assert mock_client.abort_multipart_upload.call_count == len(config.bucket_ids)
+
+    MultipartUploadCleaner._handle_upload = patch
+    yield
+    MultipartUploadCleaner._handle_upload = original
 
 
-def test_abort_stale_multipart_uploads_no_uploads(
-    mock_datetime, mock_boto_client, config, now
-):
-    """TODO"""
-    mock_datetime.now.return_value = now
-    mock_datetime.UTC = UTC
+def test_multipart_upload_cleaner_with_localstack():
+    """Populate buckets with different test uploads and run the cleaner."""
+    with LocalStackContainer(image="localstack/localstack:latest") as localstack:
+        endpoint_url = localstack.get_url()
+        s3_client = boto3.client(
+            "s3",
+            aws_access_key_id=TEST_CONFIG.s3_access_key_id,
+            aws_secret_access_key=TEST_CONFIG.s3_secret_access_key,
+            endpoint_url=endpoint_url,
+        )
+        for bucket in TEST_CONFIG.bucket_ids:
+            s3_client.create_bucket(Bucket=bucket)
 
-    mock_client = MagicMock()
-    mock_boto_client.return_value = mock_client
+        # Create mock multipart uploads
+        s3_client.create_multipart_upload(
+            Bucket="bucket1",
+            Key="file1.txt",
+        )
+        s3_client.create_multipart_upload(
+            Bucket="bucket1",
+            Key="file2.txt",
+        )
+        s3_client.create_multipart_upload(
+            Bucket="bucket2",
+            Key="file3.txt",
+        )
 
-    paginator = MagicMock()
-    paginator.paginate.side_effect = lambda Bucket: [{"Uploads": []}]
-    mock_client.get_paginator.return_value = paginator
+        config = TEST_CONFIG.model_copy(update={"s3_endpoint_url": endpoint_url})
+        with patch_handle_upload():
+            cleaner = MultipartUploadCleaner(config)
+            cleaner.abort_stale_multipart_uploads()
 
-    summary = abort_stale_multipart_uploads(config)
-    for bucket in config.bucket_ids:
-        assert summary[bucket] == []
-    mock_client.abort_multipart_upload.assert_not_called()
+        # Verify that only the stale upload was aborted
+        bucket1_uploads = s3_client.list_multipart_uploads(Bucket="bucket1")["Uploads"]
+        assert len(bucket1_uploads) == 1
+        assert bucket1_uploads[0]["Key"] == "file1.txt"
 
-
-def test_abort_stale_multipart_uploads_initiated_as_datetime(
-    mock_datetime, mock_boto_client, config, now
-):
-    """TODO"""
-    mock_datetime.now.return_value = now
-    mock_datetime.UTC = UTC
-
-    mock_client = MagicMock()
-    mock_boto_client.return_value = mock_client
-
-    old_dt = now - timedelta(days=10)
-    uploads = [
-        {
-            "UploadId": "old-upload",
-            "Key": "file1.txt",
-            "Initiated": old_dt,
-        }
-    ]
-    paginator = MagicMock()
-    paginator.paginate.side_effect = lambda Bucket: [{"Uploads": uploads}]
-    mock_client.get_paginator.return_value = paginator
-
-    summary = abort_stale_multipart_uploads(config)
-    for bucket in config.bucket_ids:
-        assert len(summary[bucket]) == 1
-        assert summary[bucket][0]["key"] == "file1.txt"
-    mock_client.abort_multipart_upload.assert_any_call(
-        Bucket=config.bucket_ids[0], Key="file1.txt", UploadId="old-upload"
-    )
+        bucket2_uploads = s3_client.list_multipart_uploads(Bucket="bucket2")["Uploads"]
+        assert len(bucket2_uploads) == 1
+        assert bucket2_uploads[0]["Key"] == "file3.txt"
