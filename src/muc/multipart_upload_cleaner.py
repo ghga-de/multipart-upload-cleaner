@@ -61,17 +61,10 @@ class MultipartUploadCleaner:
 
     def abort_stale_multipart_uploads(self):
         """Abort ongoing multipart uploads older than the configured interval for all buckets in the config."""
-        num_uploads = 0
-        number_aborted = 0
-
         for bucket in self._config.bucket_ids:
             paginator = self._client.get_paginator("list_multipart_uploads")
             for page in paginator.paginate(Bucket=bucket):
                 self._handle_pages(bucket=bucket, page=page)
-
-        logger.info(
-            f"Aborted {number_aborted} stale multipart uploads out of {num_uploads} total uploads across {'buckets' if len(self._config.bucket_ids) > 1 else 'bucket'}."
-        )
 
     def _handle_pages(self, *, bucket: str, page):
         """Handle each page in the list of multipart uploads."""

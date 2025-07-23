@@ -15,12 +15,12 @@
 """Test multipart upload cleaner logic."""
 
 from contextlib import contextmanager
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 
 import boto3
 from testcontainers.localstack import LocalStackContainer
 
-from muc.mup_cleaner import CleanerConfig, MultipartUploadCleaner
+from muc.multipart_upload_cleaner import CleanerConfig, MultipartUploadCleaner
 
 BUCKET_IDS = ["bucket1", "bucket2"]
 FILE_IDS = ["file1.txt", "file2.txt", "file3.txt"]
@@ -31,7 +31,7 @@ TEST_CONFIG = CleanerConfig(
     s3_secret_access_key="test",
     s3_endpoint_url="http://localstack:4566",
     bucket_ids=BUCKET_IDS,
-    cleanup_interval=7,
+    cleanup_interval=CLEANUP_INTERVAL,
     service_name="test-service",
     service_instance_id="test001",
 )  # type: ignore
@@ -67,7 +67,7 @@ def patch_handle_upload():
     MultipartUploadCleaner._handle_upload = original
 
 
-def test_multipart_upload_cleaner_with_localstack():
+def test_multipart_upload_cleaner_with_localstack(caplog):
     """Populate buckets with different test uploads and run the cleaner."""
     with LocalStackContainer(image="localstack/localstack:latest") as localstack:
         endpoint_url = localstack.get_url()
@@ -97,13 +97,19 @@ def test_multipart_upload_cleaner_with_localstack():
         config = TEST_CONFIG.model_copy(update={"s3_endpoint_url": endpoint_url})
         with patch_handle_upload():
             cleaner = MultipartUploadCleaner(config)
+            # patch the threshold to a fixed date for testing
+            cleaner._threshold = NOW - timedelta(days=TEST_CONFIG.cleanup_interval)
             cleaner.abort_stale_multipart_uploads()
 
         # Verify that only the stale upload was aborted
-        bucket1_uploads = s3_client.list_multipart_uploads(Bucket="bucket1")["Uploads"]
+        bucket1_uploads_metadata = s3_client.list_multipart_uploads(Bucket="bucket1")
+        assert "Uploads" in bucket1_uploads_metadata
+        bucket1_uploads = bucket1_uploads_metadata["Uploads"]
         assert len(bucket1_uploads) == 1
         assert bucket1_uploads[0]["Key"] == "file1.txt"
 
-        bucket2_uploads = s3_client.list_multipart_uploads(Bucket="bucket2")["Uploads"]
+        bucket2_uploads_metadata = s3_client.list_multipart_uploads(Bucket="bucket2")
+        assert "Uploads" in bucket1_uploads_metadata
+        bucket2_uploads = bucket2_uploads_metadata["Uploads"]
         assert len(bucket2_uploads) == 1
         assert bucket2_uploads[0]["Key"] == "file3.txt"
