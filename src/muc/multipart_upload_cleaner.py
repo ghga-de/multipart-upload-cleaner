@@ -20,7 +20,7 @@ from logging import getLogger
 import boto3
 from botocore.exceptions import ClientError
 
-from muc.config import CleanerConfig
+from muc.config import Config
 
 logger = getLogger(__name__)
 
@@ -28,7 +28,7 @@ logger = getLogger(__name__)
 class MultipartUploadCleaner:
     """Handler class for cleanup of stale multipart uploads in S3 buckets."""
 
-    def __init__(self, config: CleanerConfig):
+    def __init__(self, config: Config):
         """Initialize the cleaner with the provided configuration."""
         self._config = config
         self._client = boto3.client(

@@ -17,8 +17,10 @@
       "type": "string"
     },
     "service_name": {
-      "default": "my_microservice",
-      "description": "Short name of this service",
+      "description": "The name of the (micro-)service. This will be included in log messages.",
+      "examples": [
+        "my-cool-special-service"
+      ],
       "title": "Service Name",
       "type": "string"
     },
@@ -53,154 +55,90 @@
       "title": "Log Traceback",
       "type": "boolean"
     },
-    "host": {
-      "default": "127.0.0.1",
-      "description": "IP of the host.",
-      "title": "Host",
+    "s3_endpoint_url": {
+      "description": "URL to the S3 API.",
+      "examples": [
+        "http://localhost:4566"
+      ],
+      "title": "S3 Endpoint Url",
       "type": "string"
     },
-    "port": {
-      "default": 8080,
-      "description": "Port to expose the server on the specified host",
-      "title": "Port",
+    "s3_access_key_id": {
+      "description": "Part of credentials for login into the S3 service. See: https://boto3.amazonaws.com/v1/documentation/api/latest/guide/credentials.html",
+      "examples": [
+        "my-access-key-id"
+      ],
+      "title": "S3 Access Key Id",
+      "type": "string"
+    },
+    "s3_secret_access_key": {
+      "description": "Part of credentials for login into the S3 service. See: https://boto3.amazonaws.com/v1/documentation/api/latest/guide/credentials.html",
+      "examples": [
+        "my-secret-access-key"
+      ],
+      "format": "password",
+      "title": "S3 Secret Access Key",
+      "type": "string",
+      "writeOnly": true
+    },
+    "s3_session_token": {
+      "anyOf": [
+        {
+          "format": "password",
+          "type": "string",
+          "writeOnly": true
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Part of credentials for login into the S3 service. See: https://boto3.amazonaws.com/v1/documentation/api/latest/guide/credentials.html",
+      "examples": [
+        "my-session-token"
+      ],
+      "title": "S3 Session Token"
+    },
+    "aws_config_ini": {
+      "anyOf": [
+        {
+          "format": "path",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Path to a config file for specifying more advanced S3 parameters. This should follow the format described here: https://boto3.amazonaws.com/v1/documentation/api/latest/guide/configuration.html#using-a-configuration-file",
+      "examples": [
+        "~/.aws/config"
+      ],
+      "title": "Aws Config Ini"
+    },
+    "buckets": {
+      "description": "List of bucket IDs to check for stale multipart uploads.",
+      "items": {
+        "type": "string"
+      },
+      "title": "Buckets",
+      "type": "array"
+    },
+    "cleanup_interval": {
+      "description": "Number of days after which multipart uploads are considered stale and will be aborted.0 is allowed to remove all multipart uploads regardless of their age.",
+      "minimum": 0,
+      "title": "Cleanup Interval",
       "type": "integer"
-    },
-    "auto_reload": {
-      "default": false,
-      "description": "A development feature. Set to `True` to automatically reload the server upon code changes",
-      "title": "Auto Reload",
-      "type": "boolean"
-    },
-    "workers": {
-      "default": 1,
-      "description": "Number of workers processes to run.",
-      "title": "Workers",
-      "type": "integer"
-    },
-    "api_root_path": {
-      "default": "",
-      "description": "Root path at which the API is reachable. This is relative to the specified host and port.",
-      "title": "Api Root Path",
-      "type": "string"
-    },
-    "openapi_url": {
-      "default": "/openapi.json",
-      "description": "Path to get the openapi specification in JSON format. This is relative to the specified host and port.",
-      "title": "Openapi Url",
-      "type": "string"
-    },
-    "docs_url": {
-      "default": "/docs",
-      "description": "Path to host the swagger documentation. This is relative to the specified host and port.",
-      "title": "Docs Url",
-      "type": "string"
-    },
-    "cors_allowed_origins": {
-      "anyOf": [
-        {
-          "items": {
-            "type": "string"
-          },
-          "type": "array"
-        },
-        {
-          "type": "null"
-        }
-      ],
-      "default": null,
-      "description": "A list of origins that should be permitted to make cross-origin requests. By default, cross-origin requests are not allowed. You can use ['*'] to allow any origin.",
-      "examples": [
-        [
-          "https://example.org",
-          "https://www.example.org"
-        ]
-      ],
-      "title": "Cors Allowed Origins"
-    },
-    "cors_allow_credentials": {
-      "anyOf": [
-        {
-          "type": "boolean"
-        },
-        {
-          "type": "null"
-        }
-      ],
-      "default": null,
-      "description": "Indicate that cookies should be supported for cross-origin requests. Defaults to False. Also, cors_allowed_origins cannot be set to ['*'] for credentials to be allowed. The origins must be explicitly specified.",
-      "examples": [
-        [
-          "https://example.org",
-          "https://www.example.org"
-        ]
-      ],
-      "title": "Cors Allow Credentials"
-    },
-    "cors_allowed_methods": {
-      "anyOf": [
-        {
-          "items": {
-            "type": "string"
-          },
-          "type": "array"
-        },
-        {
-          "type": "null"
-        }
-      ],
-      "default": null,
-      "description": "A list of HTTP methods that should be allowed for cross-origin requests. Defaults to ['GET']. You can use ['*'] to allow all standard methods.",
-      "examples": [
-        [
-          "*"
-        ]
-      ],
-      "title": "Cors Allowed Methods"
-    },
-    "cors_allowed_headers": {
-      "anyOf": [
-        {
-          "items": {
-            "type": "string"
-          },
-          "type": "array"
-        },
-        {
-          "type": "null"
-        }
-      ],
-      "default": null,
-      "description": "A list of HTTP request headers that should be supported for cross-origin requests. Defaults to []. You can use ['*'] to allow all headers. The Accept, Accept-Language, Content-Language and Content-Type headers are always allowed for CORS requests.",
-      "examples": [
-        []
-      ],
-      "title": "Cors Allowed Headers"
-    },
-    "generate_correlation_id": {
-      "default": true,
-      "description": "A flag, which, if False, will result in an error when inbound requests don't possess a correlation ID. If True, requests without a correlation ID will be assigned a newly generated ID in the correlation ID middleware function.",
-      "examples": [
-        true,
-        false
-      ],
-      "title": "Generate Correlation Id",
-      "type": "boolean"
-    },
-    "language": {
-      "default": "Croatian",
-      "description": "The language.",
-      "enum": [
-        "Greek",
-        "Croatian",
-        "French",
-        "German"
-      ],
-      "title": "Language",
-      "type": "string"
     }
   },
   "required": [
-    "service_instance_id"
+    "service_name",
+    "service_instance_id",
+    "s3_endpoint_url",
+    "s3_access_key_id",
+    "s3_secret_access_key",
+    "buckets",
+    "cleanup_interval"
   ],
   "title": "ModSettings",
   "type": "object"

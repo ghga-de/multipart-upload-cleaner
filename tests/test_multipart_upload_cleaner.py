@@ -20,20 +20,20 @@ from datetime import UTC, datetime, timedelta
 import boto3
 from testcontainers.localstack import LocalStackContainer
 
-from muc.multipart_upload_cleaner import CleanerConfig, MultipartUploadCleaner
+from muc.multipart_upload_cleaner import Config, MultipartUploadCleaner
 
 BUCKET_IDS = ["bucket1", "bucket2"]
 FILE_IDS = ["file1.txt", "file2.txt", "file3.txt"]
 CLEANUP_INTERVAL = 7  # days
 NOW = datetime(2025, 8, 12, 16, 4, tzinfo=UTC)
-TEST_CONFIG = CleanerConfig(
+TEST_CONFIG = Config(
     s3_access_key_id="test",
     s3_secret_access_key="test",
     s3_endpoint_url="http://localstack:4566",
     buckets=BUCKET_IDS,
     cleanup_interval=CLEANUP_INTERVAL,
     service_name="test-service",
-    service_instance_id="test001",
+    service_instance_id="001",
 )  # type: ignore
 
 # List of mock multipart upload metadata

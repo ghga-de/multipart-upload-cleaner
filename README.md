@@ -3,7 +3,7 @@
 
 # Multipart Upload Cleaner
 
-Multipart Upload Cleaner - a short description
+Multipart Upload Cleaner - Small script to abort ongoing multipart uploads
 
 ## Description
 
@@ -41,7 +41,7 @@ If you prefer not to use containers, you may install the service from source:
 pip install .
 
 # To run the service:
-multipart_upload_cleaner --help
+muc --help
 ```
 
 ## Configuration
@@ -49,9 +49,17 @@ multipart_upload_cleaner --help
 ### Parameters
 
 The service requires the following configuration parameters:
-- <a id="properties/log_level"></a>**`log_level`** *(string)*: The minimum log level to capture. Must be one of: `["CRITICAL", "ERROR", "WARNING", "INFO", "DEBUG", "TRACE"]`. Default: `"INFO"`.
+- <a id="properties/log_level"></a>**`log_level`** *(string)*: The minimum log level to capture. Must be one of: "CRITICAL", "ERROR", "WARNING", "INFO", "DEBUG", or "TRACE". Default: `"INFO"`.
 
-- <a id="properties/service_name"></a>**`service_name`** *(string)*: Short name of this service. Default: `"my_microservice"`.
+- <a id="properties/service_name"></a>**`service_name`** *(string, required)*: The name of the (micro-)service. This will be included in log messages.
+
+
+  Examples:
+
+  ```json
+  "my-cool-special-service"
+  ```
+
 
 - <a id="properties/service_instance_id"></a>**`service_instance_id`** *(string, required)*: A string that uniquely identifies this instance across all instances of this service. This is included in log messages.
 
@@ -86,123 +94,82 @@ The service requires the following configuration parameters:
 
 - <a id="properties/log_traceback"></a>**`log_traceback`** *(boolean)*: Whether to include exception tracebacks in log messages. Default: `true`.
 
-- <a id="properties/host"></a>**`host`** *(string)*: IP of the host. Default: `"127.0.0.1"`.
+- <a id="properties/s3_endpoint_url"></a>**`s3_endpoint_url`** *(string, required)*: URL to the S3 API.
 
-- <a id="properties/port"></a>**`port`** *(integer)*: Port to expose the server on the specified host. Default: `8080`.
 
-- <a id="properties/auto_reload"></a>**`auto_reload`** *(boolean)*: A development feature. Set to `True` to automatically reload the server upon code changes. Default: `false`.
+  Examples:
 
-- <a id="properties/workers"></a>**`workers`** *(integer)*: Number of workers processes to run. Default: `1`.
+  ```json
+  "http://localhost:4566"
+  ```
 
-- <a id="properties/api_root_path"></a>**`api_root_path`** *(string)*: Root path at which the API is reachable. This is relative to the specified host and port. Default: `""`.
 
-- <a id="properties/openapi_url"></a>**`openapi_url`** *(string)*: Path to get the openapi specification in JSON format. This is relative to the specified host and port. Default: `"/openapi.json"`.
+- <a id="properties/s3_access_key_id"></a>**`s3_access_key_id`** *(string, required)*: Part of credentials for login into the S3 service. See: https://boto3.amazonaws.com/v1/documentation/api/latest/guide/credentials.html.
 
-- <a id="properties/docs_url"></a>**`docs_url`** *(string)*: Path to host the swagger documentation. This is relative to the specified host and port. Default: `"/docs"`.
 
-- <a id="properties/cors_allowed_origins"></a>**`cors_allowed_origins`**: A list of origins that should be permitted to make cross-origin requests. By default, cross-origin requests are not allowed. You can use ['*'] to allow any origin. Default: `null`.
+  Examples:
+
+  ```json
+  "my-access-key-id"
+  ```
+
+
+- <a id="properties/s3_secret_access_key"></a>**`s3_secret_access_key`** *(string, format: password, required and write-only)*: Part of credentials for login into the S3 service. See: https://boto3.amazonaws.com/v1/documentation/api/latest/guide/credentials.html.
+
+
+  Examples:
+
+  ```json
+  "my-secret-access-key"
+  ```
+
+
+- <a id="properties/s3_session_token"></a>**`s3_session_token`**: Part of credentials for login into the S3 service. See: https://boto3.amazonaws.com/v1/documentation/api/latest/guide/credentials.html. Default: `null`.
 
   - **Any of**
 
-    - <a id="properties/cors_allowed_origins/anyOf/0"></a>*array*
+    - <a id="properties/s3_session_token/anyOf/0"></a>*string, format: password*
 
-      - <a id="properties/cors_allowed_origins/anyOf/0/items"></a>**Items** *(string)*
-
-    - <a id="properties/cors_allowed_origins/anyOf/1"></a>*null*
+    - <a id="properties/s3_session_token/anyOf/1"></a>*null*
 
 
   Examples:
 
   ```json
-  [
-      "https://example.org",
-      "https://www.example.org"
-  ]
+  "my-session-token"
   ```
 
 
-- <a id="properties/cors_allow_credentials"></a>**`cors_allow_credentials`**: Indicate that cookies should be supported for cross-origin requests. Defaults to False. Also, cors_allowed_origins cannot be set to ['*'] for credentials to be allowed. The origins must be explicitly specified. Default: `null`.
+- <a id="properties/aws_config_ini"></a>**`aws_config_ini`**: Path to a config file for specifying more advanced S3 parameters. This should follow the format described here: https://boto3.amazonaws.com/v1/documentation/api/latest/guide/configuration.html#using-a-configuration-file. Default: `null`.
 
   - **Any of**
 
-    - <a id="properties/cors_allow_credentials/anyOf/0"></a>*boolean*
+    - <a id="properties/aws_config_ini/anyOf/0"></a>*string, format: path*
 
-    - <a id="properties/cors_allow_credentials/anyOf/1"></a>*null*
-
-
-  Examples:
-
-  ```json
-  [
-      "https://example.org",
-      "https://www.example.org"
-  ]
-  ```
-
-
-- <a id="properties/cors_allowed_methods"></a>**`cors_allowed_methods`**: A list of HTTP methods that should be allowed for cross-origin requests. Defaults to ['GET']. You can use ['*'] to allow all standard methods. Default: `null`.
-
-  - **Any of**
-
-    - <a id="properties/cors_allowed_methods/anyOf/0"></a>*array*
-
-      - <a id="properties/cors_allowed_methods/anyOf/0/items"></a>**Items** *(string)*
-
-    - <a id="properties/cors_allowed_methods/anyOf/1"></a>*null*
+    - <a id="properties/aws_config_ini/anyOf/1"></a>*null*
 
 
   Examples:
 
   ```json
-  [
-      "*"
-  ]
+  "~/.aws/config"
   ```
 
 
-- <a id="properties/cors_allowed_headers"></a>**`cors_allowed_headers`**: A list of HTTP request headers that should be supported for cross-origin requests. Defaults to []. You can use ['*'] to allow all headers. The Accept, Accept-Language, Content-Language and Content-Type headers are always allowed for CORS requests. Default: `null`.
+- <a id="properties/buckets"></a>**`buckets`** *(array, required)*: List of bucket IDs to check for stale multipart uploads.
 
-  - **Any of**
+  - <a id="properties/buckets/items"></a>**Items** *(string)*
 
-    - <a id="properties/cors_allowed_headers/anyOf/0"></a>*array*
-
-      - <a id="properties/cors_allowed_headers/anyOf/0/items"></a>**Items** *(string)*
-
-    - <a id="properties/cors_allowed_headers/anyOf/1"></a>*null*
-
-
-  Examples:
-
-  ```json
-  []
-  ```
-
-
-- <a id="properties/generate_correlation_id"></a>**`generate_correlation_id`** *(boolean)*: A flag, which, if False, will result in an error when inbound requests don't possess a correlation ID. If True, requests without a correlation ID will be assigned a newly generated ID in the correlation ID middleware function. Default: `true`.
-
-
-  Examples:
-
-  ```json
-  true
-  ```
-
-
-  ```json
-  false
-  ```
-
-
-- <a id="properties/language"></a>**`language`** *(string)*: The language. Must be one of: `["Greek", "Croatian", "French", "German"]`. Default: `"Croatian"`.
+- <a id="properties/cleanup_interval"></a>**`cleanup_interval`** *(integer, required)*: Number of days after which multipart uploads are considered stale and will be aborted.0 is allowed to remove all multipart uploads regardless of their age. Minimum: `0`.
 
 
 ### Usage:
 
 A template YAML for configuring the service can be found at
 [`./example_config.yaml`](./example_config.yaml).
-Please adapt it, rename it to `.multipart_upload_cleaner.yaml`, and place it in one of the following locations:
-- in the current working directory where you execute the service (on Linux: `./.multipart_upload_cleaner.yaml`)
-- in your home directory (on Linux: `~/.multipart_upload_cleaner.yaml`)
+Please adapt it, rename it to `.muc.yaml`, and place it in one of the following locations:
+- in the current working directory where you execute the service (on Linux: `./.muc.yaml`)
+- in your home directory (on Linux: `~/.muc.yaml`)
 
 The config yaml will be automatically parsed by the service.
 
@@ -211,8 +178,8 @@ The config yaml will be automatically parsed by the service.
 All parameters mentioned in the [`./example_config.yaml`](./example_config.yaml)
 could also be set using environment variables or file secrets.
 
-For naming the environment variables, just prefix the parameter name with `multipart_upload_cleaner_`,
-e.g. for the `host` set an environment variable named `multipart_upload_cleaner_host`
+For naming the environment variables, just prefix the parameter name with `muc_`,
+e.g. for the `host` set an environment variable named `muc_host`
 (you may use both upper or lower cases, however, it is standard to define all env
 variables in upper cases).
 
@@ -255,7 +222,7 @@ It installs the service with all development dependencies, and it installs pre-c
 
 The installation is performed automatically when you build the devcontainer. However,
 if you update dependencies in the [`./pyproject.toml`](./pyproject.toml) or the
-[`./lock/requirements-dev.txt`](./lock/requirements-dev.txt), please run it again.
+[`lock/requirements-dev.txt`](./lock/requirements-dev.txt), please run it again.
 
 ## License
 
@@ -264,5 +231,5 @@ This repository is free to use and modify according to the
 
 ## README Generation
 
-This README file is auto-generated, please see [.readme_generation/README.md](.readme_generation/README.md)
+This README file is auto-generated, please see [.readme_generation/README.md](./.readme_generation/README.md)
 for details.

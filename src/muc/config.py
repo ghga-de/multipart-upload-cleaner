@@ -25,7 +25,7 @@ SERVICE_NAME = "muc"
 
 
 @config_from_yaml(SERVICE_NAME)
-class CleanerConfig(S3Config, LoggingConfig):
+class Config(S3Config, LoggingConfig):
     """Custom configuration for multipart cleanup logic."""
 
     buckets: list[str] = Field(

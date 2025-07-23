@@ -16,7 +16,7 @@
 
 import typer
 
-from muc.config import CleanerConfig
+from muc.config import Config
 from muc.multipart_upload_cleaner import MultipartUploadCleaner
 
 cli = typer.Typer()
@@ -25,6 +25,6 @@ cli = typer.Typer()
 @cli.command(name="run")
 def run():
     """Run the multipart upload cleaner."""
-    config = CleanerConfig()
+    config = Config()
     cleaner = MultipartUploadCleaner(config)
     cleaner.run()
