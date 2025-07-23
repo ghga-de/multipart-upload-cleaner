@@ -25,6 +25,6 @@ cli = typer.Typer()
 @cli.command(name="run")
 def run():
     """Run the multipart upload cleaner."""
-    config = Config()
+    config = Config()  # type: ignore[call-arg]
     cleaner = MultipartUploadCleaner(config)
     cleaner.run()

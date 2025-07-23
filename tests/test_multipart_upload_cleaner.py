@@ -28,7 +28,7 @@ CLEANUP_INTERVAL = 7  # days
 NOW = datetime(2025, 8, 12, 16, 4, tzinfo=UTC)
 TEST_CONFIG = Config(
     s3_access_key_id="test",
-    s3_secret_access_key="test",
+    s3_secret_access_key="test",  # type: ignore[arg-type]
     s3_endpoint_url="http://localstack:4566",
     buckets=BUCKET_IDS,
     cleanup_interval=CLEANUP_INTERVAL,
