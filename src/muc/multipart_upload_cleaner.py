@@ -19,24 +19,10 @@ from logging import getLogger
 
 import boto3
 from botocore.exceptions import ClientError
-from hexkit.log import LoggingConfig
-from hexkit.providers.s3 import S3Config
-from pydantic import Field
+
+from muc.config import CleanerConfig
 
 logger = getLogger(__name__)
-
-
-class CleanerConfig(S3Config, LoggingConfig):
-    """Custom configuration for multipart cleanup logic."""
-
-    bucket_ids: list[str] = Field(
-        default=...,
-        description="List of bucket IDs to check for stale multipart uploads.",
-    )
-    cleanup_interval: int = Field(
-        default=...,
-        description="Number of days after which multipart uploads are considered stale and will be aborted.",
-    )
 
 
 class MultipartUploadCleaner:
@@ -61,7 +47,7 @@ class MultipartUploadCleaner:
 
     def abort_stale_multipart_uploads(self):
         """Abort ongoing multipart uploads older than the configured interval for all buckets in the config."""
-        for bucket in self._config.bucket_ids:
+        for bucket in self._config.buckets:
             paginator = self._client.get_paginator("list_multipart_uploads")
             for page in paginator.paginate(Bucket=bucket):
                 self._handle_pages(bucket=bucket, page=page)

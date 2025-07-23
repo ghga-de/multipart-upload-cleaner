@@ -12,11 +12,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Entrypoint of the package"""
+"""This package implements a multipart upload cleaner for S3 buckets."""
 
-from muc.cli import cli
+from importlib.metadata import version
 
-
-def run():
-    """Run the multipart upload cleaner."""
-    cli()
+__version__ = version(__package__)

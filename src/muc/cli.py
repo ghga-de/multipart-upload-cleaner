@@ -12,11 +12,19 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Entrypoint of the package"""
+"""Command-line interface for the multipart upload cleaner."""
 
-from muc.cli import cli
+import typer
+
+from muc.config import CleanerConfig
+from muc.multipart_upload_cleaner import MultipartUploadCleaner
+
+cli = typer.Typer()
 
 
+@cli.command(name="run")
 def run():
     """Run the multipart upload cleaner."""
-    cli()
+    config = CleanerConfig()
+    cleaner = MultipartUploadCleaner(config)
+    cleaner.run()

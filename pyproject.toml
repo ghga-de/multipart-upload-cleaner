@@ -20,9 +20,9 @@ classifiers = [
     "Topic :: Software Development :: Libraries",
     "Intended Audience :: Developers",
 ]
-name = "multipart_upload_cleaner"
+name = "muc"
 version = "0.1.0"
-description = "Multipart Upload Cleaner - a short description"
+description = "Multipart Upload Cleaner - Small script to abort ongoing multipart uploads"
 dependencies = [
     "typer >= 0.15",
     "hexkit[s3] >= 5.3",

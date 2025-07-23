@@ -30,7 +30,7 @@ TEST_CONFIG = CleanerConfig(
     s3_access_key_id="test",
     s3_secret_access_key="test",
     s3_endpoint_url="http://localstack:4566",
-    bucket_ids=BUCKET_IDS,
+    buckets=BUCKET_IDS,
     cleanup_interval=CLEANUP_INTERVAL,
     service_name="test-service",
     service_instance_id="test001",
@@ -62,9 +62,9 @@ def patch_handle_upload():
             initiated=MOCK_METADATA_REPLACEMENTS[key]["Initiated"],
         )
 
-    MultipartUploadCleaner._handle_upload = patch
+    MultipartUploadCleaner._handle_upload = patch  # type: ignore[method-assign]
     yield
-    MultipartUploadCleaner._handle_upload = original
+    MultipartUploadCleaner._handle_upload = original  # type: ignore[method-assign]
 
 
 def test_multipart_upload_cleaner_with_localstack(caplog):
@@ -77,7 +77,7 @@ def test_multipart_upload_cleaner_with_localstack(caplog):
             aws_secret_access_key=TEST_CONFIG.s3_secret_access_key,
             endpoint_url=endpoint_url,
         )
-        for bucket in TEST_CONFIG.bucket_ids:
+        for bucket in TEST_CONFIG.buckets:
             s3_client.create_bucket(Bucket=bucket)
 
         # Create mock multipart uploads

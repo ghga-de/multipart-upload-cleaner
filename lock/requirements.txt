@@ -4,15 +4,15 @@ annotated-types==0.7.0 \
     # via
     #   -c lock/requirements-dev.txt
     #   pydantic
-boto3==1.39.9 \
-    --hash=sha256:5bc85e9fdec4e21ef5ca2c22b4d51a3e32b53f3da36ce51f5a3ea4dbde07b132 \
-    --hash=sha256:e3d3a6b617e1575e7ec854c820a882ab2e189a0421e74dc0dca2c9e13d4370a5
+boto3==1.39.11 \
+    --hash=sha256:3027edf20642fe1d5f9dc50a420d0fe2733073ed6a9f0f047b60fe08c3682132 \
+    --hash=sha256:af8f1dad35eceff7658fab43b39b0f55892b6e3dd12308733521cc24dd2c9a02
     # via
     #   -c lock/requirements-dev.txt
     #   hexkit
-botocore==1.39.9 \
-    --hash=sha256:02f141c2849e4589a79feea245ce4ecc478d48b7865572445af8aae3b041772d \
-    --hash=sha256:a9691cbe03a3bc8b2720b3c36e5c5a2eecace6acd72bfb1107f00e75edaec4f3
+botocore==1.39.11 \
+    --hash=sha256:1545352931a8a186f3e977b1e1a4542d7d434796e274c3c62efd0210b5ea76dc \
+    --hash=sha256:953b12909d6799350e346ab038e55b6efe622c616f80aef74d7a6683ffdd972c
     # via
     #   -c lock/requirements-dev.txt
     #   boto3
@@ -24,12 +24,12 @@ click==8.2.1 \
     # via
     #   -c lock/requirements-dev.txt
     #   typer
-hexkit==5.4.1 \
-    --hash=sha256:6879fd265e891cd5f3bfd1d86e3f75f15e4ec9b6e85d4cd121dc73d9bd84dddd \
-    --hash=sha256:dda609b31300cd2aedaf873d456c2159c6489ded8f7ba74b6e6cc07f9a1b8e33
+hexkit==6.0.0 \
+    --hash=sha256:021ffd92559468860bd744daeb32cd7428f58395eade416d4b1b103258cc6414 \
+    --hash=sha256:a1af45ad5325a64050de4ac9e9ced3ac30a32db1b9cef5fa208b49630322dc1e
     # via
     #   -c lock/requirements-dev.txt
-    #   multipart-upload-cleaner (pyproject.toml)
+    #   muc (pyproject.toml)
 importlib-metadata==8.7.0 \
     --hash=sha256:d13b81ad223b890aa16c5471f2ac3056cf76c5f10f82d6f9292f0b415f389000 \
     --hash=sha256:e5dd1551894c77868a30651cef00984d50e1002d06942a7101d34870c5f02afd
@@ -281,7 +281,7 @@ typer==0.16.0 \
     --hash=sha256:af377ffaee1dbe37ae9440cb4e8f11686ea5ce4e9bae01b84ae7c63b87f1dd3b
     # via
     #   -c lock/requirements-dev.txt
-    #   multipart-upload-cleaner (pyproject.toml)
+    #   muc (pyproject.toml)
 typing-extensions==4.14.1 \
     --hash=sha256:38b39f4aeeab64884ce9f74c94263ef78f3c22467c8724005483154c26648d36 \
     --hash=sha256:d1e1e3b58374dc93031d6eda2420a48ea44a36c2b4766a4fdeb3710755731d76
