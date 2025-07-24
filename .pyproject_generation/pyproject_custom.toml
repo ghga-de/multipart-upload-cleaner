@@ -1,0 +1,14 @@
+[project]
+name = "muc"
+version = "0.1.0"
+description = "Multipart Upload Cleaner - Small script to abort ongoing multipart uploads"
+dependencies = [
+    "typer >= 0.15",
+    "hexkit[s3] >= 5.3",
+]
+
+[project.urls]
+Repository = "https://github.com/ghga-de/multipart-upload-cleaner"
+
+[project.scripts]
+muc = "muc.__main__:run"
