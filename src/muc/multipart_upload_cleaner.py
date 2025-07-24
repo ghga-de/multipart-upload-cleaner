@@ -42,39 +42,38 @@ class MultipartUploadCleaner:
     def run(self):
         """Run the multipart upload cleanup process."""
         logger.info("Starting multipart upload cleanup process.")
-        self.abort_stale_multipart_uploads()
-        logger.info("Multipart upload cleanup process completed.")
-
-    def abort_stale_multipart_uploads(self):
-        """Abort ongoing multipart uploads older than the configured interval for all buckets in the config."""
         for bucket in self._config.buckets:
             paginator = self._client.get_paginator("list_multipart_uploads")
             for page in paginator.paginate(Bucket=bucket):
                 self._handle_pages(bucket=bucket, page=page)
 
+        logger.info("Multipart upload cleanup process completed.")
+
     def _handle_pages(self, *, bucket: str, page):
         """Handle each page in the list of multipart uploads."""
         uploads = page.get("Uploads", [])
         for upload in uploads:
-            self._handle_upload(
+            self._abort_upload(
                 bucket=bucket,
                 upload_id=upload["UploadId"],
                 key=upload["Key"],
                 initiated=upload["Initiated"],
             )
 
-    def _handle_upload(self, *, bucket: str, upload_id: str, key: str, initiated: str):
+    def _abort_upload(
+        self, *, bucket: str, upload_id: str, key: str, initiated: datetime
+    ):
         """Handle a single multipart upload."""
-        started = datetime.fromisoformat(initiated.replace("Z", "+00:00"))
-        if started < self._threshold:
+        if initiated < self._threshold:
             try:
                 self._client.abort_multipart_upload(
                     Bucket=bucket, Key=key, UploadId=upload_id
                 )
             except ClientError as error:
                 logger.error(
-                    f"Failed to abort upload {upload_id} for object {key} in bucket {bucket}, initiated on {started}:\n{error}"
+                    f"Failed to abort upload {upload_id} for object {key} in bucket {bucket}, initiated on {initiated}:\n{error}",
+                    exc_info=True,
                 )
             logger.info(
-                f"Aborted upload {upload_id} for object {key} in bucket {bucket}, initiated on {started}."
+                f"Aborted upload {upload_id} for object {key} in bucket {bucket}, initiated on {initiated}."
             )

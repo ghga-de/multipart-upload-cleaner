@@ -39,20 +39,18 @@ TEST_CONFIG = Config(
 # List of mock multipart upload metadata
 # Only the second upload is stale and should be aborted
 MOCK_METADATA_REPLACEMENTS = {
-    "file1.txt": {"Initiated": datetime(2025, 8, 12, tzinfo=UTC).isoformat()},
-    "file2.txt": {"Initiated": datetime(2025, 8, 5, tzinfo=UTC).isoformat()},
-    "file3.txt": {
-        "Initiated": datetime(2025, 8, 5, 23, 59, 59, tzinfo=UTC).isoformat()
-    },
+    "file1.txt": {"Initiated": datetime(2025, 8, 12, tzinfo=UTC)},
+    "file2.txt": {"Initiated": datetime(2025, 8, 5, tzinfo=UTC)},
+    "file3.txt": {"Initiated": datetime(2025, 8, 5, 23, 59, 59, tzinfo=UTC)},
 }
 
 
 @contextmanager
 def patch_handle_upload():
     """Patch the `_handle_upload` method to inject fake upload initiation dates."""
-    original = MultipartUploadCleaner._handle_upload
+    original = MultipartUploadCleaner._abort_upload
 
-    def patch(self, *, bucket: str, upload_id: str, key: str, initiated: str):
+    def patch(self, *, bucket: str, upload_id: str, key: str, initiated: datetime):
         """Patch to inject fake upload initiation date."""
         original(
             self,
@@ -62,12 +60,12 @@ def patch_handle_upload():
             initiated=MOCK_METADATA_REPLACEMENTS[key]["Initiated"],
         )
 
-    MultipartUploadCleaner._handle_upload = patch  # type: ignore[method-assign]
+    MultipartUploadCleaner._abort_upload = patch  # type: ignore[method-assign]
     yield
-    MultipartUploadCleaner._handle_upload = original  # type: ignore[method-assign]
+    MultipartUploadCleaner._abort_upload = original  # type: ignore[method-assign]
 
 
-def test_multipart_upload_cleaner_with_localstack(caplog):
+def test_multipart_upload_cleaner_with_localstack():
     """Populate buckets with different test uploads and run the cleaner."""
     with LocalStackContainer(image="localstack/localstack:latest") as localstack:
         endpoint_url = localstack.get_url()
@@ -99,7 +97,7 @@ def test_multipart_upload_cleaner_with_localstack(caplog):
             cleaner = MultipartUploadCleaner(config)
             # patch the threshold to a fixed date for testing
             cleaner._threshold = NOW - timedelta(days=TEST_CONFIG.cleanup_interval)
-            cleaner.abort_stale_multipart_uploads()
+            cleaner.run()
 
         # Verify that only the stale upload was aborted
         bucket1_uploads_metadata = s3_client.list_multipart_uploads(Bucket="bucket1")
